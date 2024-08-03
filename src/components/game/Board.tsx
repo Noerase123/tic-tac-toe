@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import Square from './Square';
 import { useNavigate } from 'react-router-dom';
-import { useAtomValue } from 'jotai';
-import { playerNameAtom } from '../../store';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { addGameDataAtom, playerNameAtom } from '../../store';
+import dayjs from 'dayjs';
 
 function Board() {
   const navigate = useNavigate();
@@ -11,8 +12,16 @@ function Board() {
   const [status, setStatus] = useState('');
 
   const playerNameValue = useAtomValue(playerNameAtom);
+  const addGameData = useSetAtom(addGameDataAtom);
 
-  const handleNavigateStop = () => navigate("/");
+  const handleNavigateStop = async () => {
+    addGameData({
+      ...playerNameValue,
+      winner: String(winner) === 'X' ? playerNameValue.playerOne : playerNameValue.playerTwo,
+      dateCreated: dayjs().format('MMM DD, YYYY h:mma')
+    });
+    navigate("/");
+  };
   const handleContinue = () => setSquares(Array(9).fill(null));
   
   useEffect(() => {

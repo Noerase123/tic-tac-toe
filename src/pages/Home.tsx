@@ -9,8 +9,10 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useValidation } from '../hooks/useValidation';
 import { Button } from '../components/ui/button';
-import { useSetAtom } from 'jotai';
-import { playerNameAtom } from '../store';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useResetAtom } from 'jotai/utils'
+import { addGameDataAtom, gameDataAtom, playerNameAtom, TGameData } from '../store';
+import { useEffect } from 'react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -21,6 +23,51 @@ export default function Home() {
   } = useValidation();
 
   const setPlayerName = useSetAtom(playerNameAtom);
+  const [gameDataValue, setGameDateValue] = useAtom(gameDataAtom);
+  const addGameDataValue = useAtomValue(addGameDataAtom);
+  const resetAddGameData = useResetAtom(addGameDataAtom);
+
+  const fetchAPI = async () => {
+    try {
+      const response = await fetch('/store');
+      const data = await response.json();
+      setGameDateValue(data.data);
+    } catch (error) {
+      console.log('error', error);
+      setGameDateValue([
+        ...gameDataValue,
+        {
+          playerOne: addGameDataValue?.playerOne || '',
+          playerTwo: addGameDataValue?.playerTwo || '',
+          winner: addGameDataValue?.winner || '',
+          dateCreated: addGameDataValue?.dateCreated || '',
+        }
+      ]);
+    }
+  }
+
+  const postAPI = async () => {
+    try {
+      await fetch('/store', {
+        method: "POST",
+        body: JSON.stringify(addGameDataValue),
+        headers: { 'Content-Type': 'application/json' }
+      })
+    } catch (error) {
+      console.log('error', error);
+    }
+  }
+
+  useEffect(() => {
+    fetchAPI();
+  }, []);
+
+  useEffect(() => {
+    if (addGameDataValue) {
+      postAPI();
+      resetAddGameData();
+    }
+  }, [addGameDataValue]);
 
   const handleSubmit = handleSubmitHook(d => {
     setPlayerName(d);
@@ -61,6 +108,46 @@ export default function Home() {
           </DialogContent>
         </Dialog>
       </div>
+      {gameDataValue.length === 0 ? (
+        <div className='text-center mt-10'>
+          <p className='text-gray-400 text-[20px]'>No record yet</p>
+        </div>
+      ) : (
+        <div className='mx-10 mt-10'>
+          <p className='text-white text-[20px] mb-2'>Scoreboard</p>
+          <table className='w-full bg-white rounded-md overflow-hidden'>
+            <thead className='bg-gray-300'>
+              <tr>
+                <th className='text-left px-3 py-2'>Player One</th>
+                <th className='text-left px-3 py-2'>Player Two</th>
+                <th className='text-left px-3 py-2'>Winner</th>
+                <th className='text-left px-3 py-2'>Date Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gameDataValue.map((data: any) => {
+                return (
+                  <tr>
+                    <td className='px-3 py-2'>
+                      <p className='text-[14px]'>{data.playerOne}</p>
+                    </td>
+                    <td className='px-3 py-2'>
+                      <p className='text-[14px]'>{data.playerTwo}</p>
+                    </td>
+                    <td className='px-3 py-2'>
+                      <p className='text-[14px]'>{data.winner}</p>
+                    </td>
+                    <td className='px-3 py-2'>
+                      <p className='text-[14px]'>{data.dateCreated}</p>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      
     </div>
   )
 }
