@@ -1,3 +1,11 @@
+# Source live demo
+
+https://tic-tac-toe-ga3f.vercel.app
+
+# Video clip
+
+https://github.com/user-attachments/assets/d517875d-5d44-4d61-9b0d-e3c57e673982
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
